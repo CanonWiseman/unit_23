@@ -21,4 +21,15 @@
     <button>Back</button>
 </form>
 
+<h3>Posts</h3>
+
+<ul>
+    {% for post in posts %}
+    <li><a href="/posts/{{ post.id }}">{{ post.title }}</a></li>
+    {% endfor %}
+</ul>
+<form action="/users/{{ user.id }}/posts/new" method="GET">
+    <button>Add Post</button>
+</form>
+
 {% endblock %}
