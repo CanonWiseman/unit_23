@@ -24,4 +24,9 @@
     <button>Back</button>
 </form>
 
+<h4><a href="/tags">Tags</a></h4>
+{% for tag in post.tags %}
+<a href="/tags/{{ tag.id }}">{{ tag.name }}</a>
+{% endfor %}
+
 {% endblock %}

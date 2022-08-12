@@ -1,5 +1,5 @@
 from app import app
-from models import User, db
+from models import User, db, Post
 from unittest import TestCase
 from flask import session
 from flask_sqlalchemy import SQLAlchemy
@@ -33,6 +33,8 @@ class UserModelTestCase(TestCase):
     def setUp(self):
 
         User.query.delete()
+        
+
 
         user = User(first_name = "test", last_name = "case")
 

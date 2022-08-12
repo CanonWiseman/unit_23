@@ -33,6 +33,17 @@ class User(db.Model):
         u = self
         return f"<User {u.id} {u.first_name} {u.last_name}>"
 
+
+
+class Tag(db.Model):
+    """Tags model"""
+
+    __tablename__ = "tags"
+
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
+
+    name = db.Column(db.String(20), nullable = False, unique = True)
+
 class Post(db.Model):
     """Post model"""
 
@@ -47,5 +58,21 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable = False)
+    
+    related_tags = db.relationship('PostTag', backref = "post")
+
+    tags = db.relationship("Tag", secondary = 'post_tags', backref = 'posts')
+
+class PostTag(db.Model):
+    """joining table for tags and posts"""
+
+    __tablename__ = "post_tags"
+
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), primary_key = True)
+
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), primary_key = True)
+
+
+
 
 

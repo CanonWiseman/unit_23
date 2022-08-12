@@ -1,7 +1,7 @@
 """Blogly application."""
 
 from flask import Flask, request, render_template, redirect, flash, session
-from models import db, connect_db, User, Post
+from models import db, connect_db, User, Post, Tag
 from flask_debugtoolbar import DebugToolbarExtension
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ debug = DebugToolbarExtension(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_ECHO'] = False
 
 connect_db(app)
 db.create_all()
@@ -96,8 +96,9 @@ def delete_user(user_id):
 def show_post_form(user_id):
     """Shows the form for adding a post for a user"""
     user = User.query.get_or_404(user_id)
+    tags = Tag.query.all()
 
-    return render_template("post_form.html", user=user)
+    return render_template("post_form.html", user=user, tags=tags)
 
 @app.route('/users/<int:user_id>/posts/new', methods=["POST"])
 def handle_new_post(user_id):
@@ -108,8 +109,13 @@ def handle_new_post(user_id):
     title = request.form['title']
     content = request.form['content']
     posted_by = user.id
+    tags = request.form.getlist('tags')
+    print(tags)
 
     new_post = Post(title = title, content = content, user_id = posted_by)
+
+    for tag in tags:
+        new_post.tags.append(tag)
 
     db.session.add(new_post) 
     db.session.commit()
@@ -162,6 +168,76 @@ def delete_post(post_id):
 
     return redirect(f'/users/{user_id}')
     
+@app.route('/tags', methods = ["GET"])
+def show_tags():
+    """Displays tag page with all tags"""
+    
+    tags = Tag.query.all()
+
+    return render_template('tag_page.html', tags=tags)
+
+@app.route('/tags/<int:tag_id>', methods = ["GET"])
+def show_tag_details(tag_id):
+    """Displays individual tag with all correlating posts"""
+
+    tag = Tag.query.get_or_404(tag_id)
+
+    return render_template('tag_detail.html', tag=tag)
+
+@app.route('/tags/new', methods = ["GET"])
+def tag_create_form():
+    """displays form to create a new tag"""
+
+    return render_template("tag_form.html")
+
+@app.route('/tags/new', methods = ["POST"])
+def handle_tag_form():
+    """Process new tag"""
+
+    tag_name = request.form["name"]
+
+    new_tag = Tag(name = tag_name)
+
+    db.session.add(new_tag)
+    db.session.commit()
+
+    return redirect('/tags')
+
+@app.route('/tags/<int:tag_id>/edit', methods=["GET"])
+def show_tag_edit(tag_id):
+    """Displays form to edit current tag"""
+
+    tag = Tag.query.get_or_404(tag_id)
+
+    return render_template("tag_edit.html", tag=tag)
+
+@app.route('/tags/<int:tag_id>/edit', methods=["POST"])
+def handle_tag_edit(tag_id):
+    """handles tag edit form and updates it in the database"""
+
+    tag = Tag.query.get_or_404(tag_id)
+
+    if request.form["name"]:
+        tag.name = request.form["name"]
+
+    db.session.add(tag)
+    db.session.commit()
+    
+    return redirect(f'/tags/{tag.id}')
+
+@app.route('/tags/<int:tag_id>/delete', methods=["POST"])
+def delete_tag(tag_id):
+    """Deletes current tag from database"""
+    
+    tag = Tag.query.get_or_404(tag_id)
+
+    db.session.delete(tag)
+    db.session.commit()
+
+    return redirect('/tags')
+
+
+
 
     
 
